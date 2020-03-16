@@ -49,10 +49,9 @@ func main() {
 		return c.File("./send.html")
 	})
 	e.POST("/send", func(c echo.Context) error {
-		for i := 0; i < 5; i++ {
-			bots[0].ChannelMessageSend("343634182615990273", c.FormValue("text"))
-			bots[1].ChannelMessageSend("688747716796481597", c.FormValue("text"))
-		}
+		// bots[0].ChannelMessageSend("343634182615990273", c.FormValue("text"))
+		// bots[1].ChannelMessageSend("688747716796481597", c.FormValue("text"))
+		sendAllChannel(c.FormValue("text"))
 		return c.HTML(http.StatusOK, "<script>window.history.back()</script>")
 	})
 	e.GET("/log", func(c echo.Context) error {
@@ -68,6 +67,21 @@ func main() {
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
+}
+
+func sendAllChannel(content string) {
+	for _, bot := range bots {
+		guilds := bot.State.Guilds
+		for _, guild := range guilds {
+			for _, channel := range guild.Channels {
+				perm, _ := bot.UserChannelPermissions(bot.State.User.ID, channel.ID)
+				if channel.Type == discordgo.ChannelTypeGuildText && perm&discordgo.PermissionSendMessages != 0 {
+					go bot.ChannelMessageSend(channel.ID, content)
+					break
+				}
+			}
+		}
+	}
 }
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
