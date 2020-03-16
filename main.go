@@ -27,8 +27,6 @@ func runBot(token string, shardID int) (discord *discordgo.Session) {
 	discord.AddHandler(messageCreate)
 	discord.AddHandlerOnce(func(s *discordgo.Session, r *discordgo.Ready) {
 		s.UpdateStatus(0, "hello!")
-		discord.
-		// s.
 	})
 
 	err = discord.Open()
