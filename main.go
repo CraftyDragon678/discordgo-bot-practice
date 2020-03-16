@@ -35,15 +35,7 @@ func runBot(token string, shardID int) (discord *discordgo.Session) {
 	return
 }
 
-func main() {
-	bytes, err := ioutil.ReadFile("token")
-	checkErr("load token file", err)
-
-	for i := 0; i < len(bots); i++ {
-		bots[i] = runBot(string(bytes), i)
-		defer bots[i].Close()
-	}
-
+func runEcho() {
 	e := echo.New()
 	e.GET("/send", func(c echo.Context) error {
 		return c.File("./send.html")
@@ -63,6 +55,18 @@ func main() {
 	go func() {
 		e.Logger.Fatal(e.Start(":1232"))
 	}()
+}
+
+func main() {
+	bytes, err := ioutil.ReadFile("token")
+	checkErr("load token file", err)
+
+	for i := 0; i < len(bots); i++ {
+		bots[i] = runBot(string(bytes), i)
+		defer bots[i].Close()
+	}
+
+	runEcho()
 
 	// Wait here until CTRL-C or other term signal is received.
 	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
