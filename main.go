@@ -52,6 +52,10 @@ func main() {
 		sendAllChannel(c.FormValue("text"))
 		return c.HTML(http.StatusOK, "<script>window.history.back()</script>")
 	})
+	e.POST("/embed", func(c echo.Context) error {
+		sendAllChannel(c.FormValue("text"))
+		return c.HTML(http.StatusOK, "<script>window.history.back()</script>")
+	})
 	e.GET("/log", func(c echo.Context) error {
 		return c.HTML(http.StatusOK, "<textarea>"+strings.Join(messageLogs, "\n")+"</textarea>")
 	})
@@ -74,10 +78,9 @@ func sendAllChannel(content string) {
 			for _, channel := range guild.Channels {
 				perm, _ := bot.UserChannelPermissions(bot.State.User.ID, channel.ID)
 				if channel.Type == discordgo.ChannelTypeGuildText && perm&discordgo.PermissionSendMessages != 0 {
-					for i := 0; i < 6; i++ {
-						go bot.ChannelMessageSend(channel.ID, content)
-					}
-					// break
+					go bot.ChannelMessageSend(channel.ID, content)
+					// bot.ChannelMessageSendEmbed()
+					break
 				}
 			}
 		}
