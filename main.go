@@ -41,6 +41,7 @@ func main() {
 
 	for i := 0; i < len(bots); i++ {
 		bots[i] = runBot(string(bytes), i)
+		defer bots[i].Close()
 	}
 
 	e := echo.New()
@@ -67,11 +68,6 @@ func main() {
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
-
-	// Cleanly close down the Discord session.
-	for _, bot := range bots {
-		bot.Close()
-	}
 }
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -92,6 +88,9 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 func checkErr(text string, err error) {
 	if err != nil {
-		log.Fatalln("error occured in", text, err)
+		for i := 0; i < len(bots); i++ {
+			bots[i].Close()
+		}
+		log.Panicln("error occured in", text+"\n", err)
 	}
 }
