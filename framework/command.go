@@ -4,12 +4,13 @@ type (
 	// Command executes
 	Command func(*Context)
 
-	CommandStruct struct {
+	commandStruct struct {
 		command Command
 		help    string
 	}
 
-	CmdMap map[string]CommandStruct
+	// CmdMap list of command
+	CmdMap map[string]commandStruct
 
 	// CommandHandler handler of command
 	CommandHandler struct {
@@ -19,7 +20,7 @@ type (
 
 // NewCommandHandler makes new command handler
 func NewCommandHandler() *CommandHandler {
-	return &CommandHandler(make(CmdMap))
+	return &CommandHandler{make(CmdMap)}
 }
 
 // GetCmds returns cmds of handler
@@ -35,7 +36,7 @@ func (handler CommandHandler) Get(name string) (*Command, bool) {
 
 // Register command
 func (handler CommandHandler) Register(name string, command Command, helpmsg string) {
-	cmdstruct := CommandStruct{command: command, help: helpmsg}
+	cmdstruct := commandStruct{command: command, help: helpmsg}
 	handler.cmds[name] = cmdstruct
 
 	// if len(name) > 1 {
@@ -44,6 +45,6 @@ func (handler CommandHandler) Register(name string, command Command, helpmsg str
 }
 
 // GetHelp returns help of command
-func (command CommandStruct) GetHelp() string {
+func (command commandStruct) GetHelp() string {
 	return command.help
 }
