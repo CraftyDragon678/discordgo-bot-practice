@@ -126,17 +126,17 @@ func commandHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		ctx.Args = args[1:]
 		c := *command
 		c(ctx)
-	}
-
-	if m.Content == "ping" {
-		for i := 1; i <= 9999999999; i++ {
+	} else {
+		if m.Content == "ping" {
+			for i := 1; i <= 9999999999; i++ {
+			}
+			s.ChannelMessageSend(m.ChannelID, "ping! "+s.HeartbeatLatency().String())
 		}
-		s.ChannelMessageSend(m.ChannelID, "ping! "+s.HeartbeatLatency().String())
-	}
 
-	if m.Content == "pong" {
-		for i := 0; i <= 5; i++ {
-			s.ChannelMessageSend(m.ChannelID, "pong!")
+		if m.Content == "pong" {
+			for i := 0; i <= 5; i++ {
+				s.ChannelMessageSend(m.ChannelID, "pong!")
+			}
 		}
 	}
 
