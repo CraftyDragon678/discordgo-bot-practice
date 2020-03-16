@@ -78,7 +78,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Content == "ping" {
 		for i := 1; i <= 9999999999; i++ {
 		}
-		s.ChannelMessageSend(m.ChannelID, "ping!")
+		s.ChannelMessageSend(m.ChannelID, "ping! "+s.HeartbeatLatency().String())
 	}
 
 	if m.Content == "pong" {
