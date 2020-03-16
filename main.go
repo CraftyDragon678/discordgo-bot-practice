@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bot-practice/cmd"
+	"bot-practice/framework"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -14,8 +16,14 @@ import (
 	"github.com/labstack/echo"
 )
 
-var messageLogs []string
-var bots [2]*discordgo.Session
+var (
+	messageLogs []string
+	bots        [2]*discordgo.Session
+
+	cmdHandler *framework.CommandHandler
+	prefix     string
+	botID      string
+)
 
 func runBot(token string, shardID int) (discord *discordgo.Session) {
 	discord, err := discordgo.New("Bot " + token)
@@ -24,7 +32,7 @@ func runBot(token string, shardID int) (discord *discordgo.Session) {
 	discord.ShardCount = len(bots)
 	discord.ShardID = shardID
 
-	discord.AddHandler(messageCreate)
+	discord.AddHandler(commandHandler)
 	discord.AddHandlerOnce(func(s *discordgo.Session, r *discordgo.Ready) {
 		s.UpdateStatus(0, "hello!")
 	})
@@ -61,10 +69,18 @@ func main() {
 	bytes, err := ioutil.ReadFile("token")
 	checkErr("load token file", err)
 
+	cmdHandler = framework.NewCommandHandler()
+	registerCommands()
+
 	for i := 0; i < len(bots); i++ {
 		bots[i] = runBot(string(bytes), i)
 		defer bots[i].Close()
 	}
+
+	usr, err := bots[0].User("@me")
+	checkErr("obtaining account details", err)
+
+	botID = usr.ID
 
 	runEcho()
 
@@ -83,7 +99,6 @@ func sendAllChannel(content string) {
 				perm, _ := bot.UserChannelPermissions(bot.State.User.ID, channel.ID)
 				if channel.Type == discordgo.ChannelTypeGuildText && perm&discordgo.PermissionSendMessages != 0 {
 					go bot.ChannelMessageSend(channel.ID, content)
-					// bot.ChannelMessageSendEmbed()
 					break
 				}
 			}
@@ -91,7 +106,28 @@ func sendAllChannel(content string) {
 	}
 }
 
-func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+func commandHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
+	user := m.Author
+	if user.ID == botID || user.Bot {
+		return
+	}
+	content := m.Content
+	args := strings.Fields(content)
+	name := strings.ToLower(args[0])
+	command, found := cmdHandler.Get(name)
+	if found {
+		channel, err := s.State.Channel(m.ChannelID)
+		checkErr("getting channel", err)
+
+		guild, err := s.State.Guild(channel.GuildID)
+		checkErr("getting guild", err)
+
+		ctx := framework.NewContext(s, guild, channel, user, message)
+		ctx.Args = args[1:]
+		c := *command
+		c(ctx)
+	}
+
 	if m.Content == "ping" {
 		for i := 1; i <= 9999999999; i++ {
 		}
@@ -114,4 +150,8 @@ func checkErr(text string, err error) {
 		}
 		log.Panicln("error occured in", text+"\n", err)
 	}
+}
+
+func registerCommands() {
+	cmdHandler.Register("help", cmd.HelpCommand, "help message!")
 }
