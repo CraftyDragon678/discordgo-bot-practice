@@ -23,18 +23,10 @@ func runBot(token string, shardID int) (discord *discordgo.Session) {
 
 	discord.ShardCount = len(bots)
 	discord.ShardID = shardID
-	idleSince := 55
 
 	discord.AddHandler(messageCreate)
 	discord.AddHandlerOnce(func(s *discordgo.Session, r *discordgo.Ready) {
-		s.UpdateStatusComplex(discordgo.UpdateStatusData{
-			IdleSince: &idleSince,
-			Game: &discordgo.Game{
-				Name: "wowoww",
-			},
-			AFK:    true,
-			Status: string(discordgo.StatusDoNotDisturb),
-		})
+		s.UpdateStatus(0, "hello!")
 	})
 
 	err = discord.Open()
