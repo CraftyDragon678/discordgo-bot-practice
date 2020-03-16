@@ -27,6 +27,8 @@ func runBot(token string, shardID int) (discord *discordgo.Session) {
 	discord.AddHandler(messageCreate)
 	discord.AddHandlerOnce(func(s *discordgo.Session, r *discordgo.Ready) {
 		s.UpdateStatus(0, "hello!")
+		discord.
+		// s.
 	})
 
 	err = discord.Open()
@@ -49,8 +51,6 @@ func main() {
 		return c.File("./send.html")
 	})
 	e.POST("/send", func(c echo.Context) error {
-		// bots[0].ChannelMessageSend("343634182615990273", c.FormValue("text"))
-		// bots[1].ChannelMessageSend("688747716796481597", c.FormValue("text"))
 		sendAllChannel(c.FormValue("text"))
 		return c.HTML(http.StatusOK, "<script>window.history.back()</script>")
 	})
@@ -76,8 +76,10 @@ func sendAllChannel(content string) {
 			for _, channel := range guild.Channels {
 				perm, _ := bot.UserChannelPermissions(bot.State.User.ID, channel.ID)
 				if channel.Type == discordgo.ChannelTypeGuildText && perm&discordgo.PermissionSendMessages != 0 {
-					go bot.ChannelMessageSend(channel.ID, content)
-					break
+					for i := 0; i < 6; i++ {
+						go bot.ChannelMessageSend(channel.ID, content)
+					}
+					// break
 				}
 			}
 		}
