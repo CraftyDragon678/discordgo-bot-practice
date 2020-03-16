@@ -1,18 +1,19 @@
 package framework
 
 type (
-	Command func(Context)
+	// Command executes
+	Command func(*Context)
 
 	CommandStruct struct {
 		command Command
 		help    string
 	}
 
-	cmdMap map[string]CommandStruct
+	CmdMap map[string]CommandStruct
 
 	// CommandHandler handler of command
 	CommandHandler struct {
-		cmds cmdMap
+		cmds CmdMap
 	}
 )
 
